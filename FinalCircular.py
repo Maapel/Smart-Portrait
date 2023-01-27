@@ -19,10 +19,8 @@ from cvzone.HandTrackingModule import HandDetector
 import cv2
 
 import time
-from cvzone.FaceMeshModule import FaceMeshDetector
 
 
-detector2 = FaceMeshDetector(maxFaces=3)
 
 total_count = 0
 
@@ -53,15 +51,6 @@ def diff(c1, c2):
     return pow((2 + r_m / 256) * pow((del_r), 2) + 4 * pow(del_g, 2) + (2 + (255 - r_m) / 256) * pow(del_b, 2), 0.5)
     # return pow(pow((del_r),2)+pow(del_g,2)+pow(del_b,2),0.5)
 
-R=20
-radius = 50
-margin = 10
-x0=radius+margin
-y0=radius+margin
-x_max=500
-x=x0
-y=y0
-max_colors=1
 
 
 def select_box(p):
@@ -78,8 +67,19 @@ def select_box(p):
                 if len(selected) >= max_colors:
                     selected.remove(selected[0])
                 selected.append(circle)
-
+color_grps =[[[216, 103, 33],[212, 89, 102],[242,212,240]],[[255, 223, 211],[254, 200, 216],[224,187,228]],[[39, 31, 230],[200, 39, 36],[100,140,200]],[[245, 220, 200],[245, 240, 170],[200,239,247]],[[0, 255, 255],[0, 191, 255],[191,0,255]],[[236,150,250],[130,210,236],[120,105,245]]]
+cv2.namedWindow("foo", cv2.WINDOW_NORMAL)
+cv2.setWindowProperty("foo", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 while cv2.waitKey(1)!=27:
+    R = 20
+    radius = 50
+    margin = 10
+    x0 = radius + margin
+    y0 = radius + margin
+    x_max = 500
+    x = x0
+    y = y0
+    max_colors = 1
 
     prev=0
     prev_pos =(0,0)
@@ -88,7 +88,6 @@ while cv2.waitKey(1)!=27:
 
     # To be defined
     thresh_t=1.1
-    color_grps =[[[216, 103, 33],[212, 89, 102],[242,212,240]],[[255, 223, 211],[254, 200, 216],[224,187,228]],[[39, 31, 230],[200, 39, 36],[100,140,200]],[[245, 220, 200],[245, 240, 170],[200,239,247]],[[0, 255, 255],[0, 191, 255],[191,0,255]],[[236,150,250],[130,210,236],[120,105,245]]]
     bg = (255,255,255)
     for colors_rgb in color_grps:
         colors = np.array(colors_rgb)
@@ -125,6 +124,7 @@ while cv2.waitKey(1)!=27:
         if capture_bool:
             capture_counter-=1
             angle1+=3.6
+            print("add")
             cv2.ellipse(img, (WIDTH//2,HEIGHT//2 ), (50,50), 0, 0,360-angle1,(255,255,255), -1)
             cv2.ellipse(img, (WIDTH//2,HEIGHT//2 ), (55,55), 0, 0,360 - angle1,(0,0,0), 5)
 
@@ -132,7 +132,7 @@ while cv2.waitKey(1)!=27:
             cv2.waitKey(1)
             if capture_counter<=0:
                 gray = cv2.cvtColor(img0, cv2.COLOR_BGR2GRAY)
-
+############################## Face Detection ###################################################
                 faceCascade = cv2.CascadeClassifier(
                     cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
                 faces = faceCascade.detectMultiScale(
@@ -150,7 +150,8 @@ while cv2.waitKey(1)!=27:
                     print(width,height)
                     face_x = face[0]+face[2]//2
                     img0 = img0[0:height, face_x - width//2: width//2 + face_x]
-                    cv2.resize(img0,(1754,2480))
+                    cv2.resize(img0,(1754*2,2480*2))
+
                     print(img0)
 
                 else:
@@ -244,13 +245,17 @@ while cv2.waitKey(1)!=27:
             overlay[gest_pos[1]:gest_pos[1] + gest.shape[0], gest_pos[0]:gest_pos[0] + gest.shape[1], :] = gest
             img = cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0)
 
+
+############################Draw palletes ########################3333
         for e in circles:
+
+
             alpha = 0.9
             overlay = img.copy()
             if e in selected:
                 cv2.ellipse(overlay,(e[0],e[1]), (radius,radius),0, 0, 360, (10,10,10), 4)
 
-                  # A filled rectangle
+                # A filled rectangle
             # cv2.ellipse(overlay, (e[0], e[1]), (radius, radius), 0, 0, 360, (255, 255, 255), -1)
 
             img = cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0)
@@ -258,11 +263,12 @@ while cv2.waitKey(1)!=27:
             y= e[1]
             angle = 0
             for clr in e[2]:
-
+                alpha =0.9
                 overlay = img.copy()
                 color = (int(clr[0]),int(clr[1]),int(clr[2]))
 
                 cv2.ellipse(overlay, (e[0], e[1]), (radius-5, radius-5), 0, angle, angle+120, color, -1)
+
                 # A filled rectangle
                 img = cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0)
                 angle+=120
@@ -274,15 +280,14 @@ while cv2.waitKey(1)!=27:
         cv2.circle(overlay,capture_pos,capture_r,(255,255,255),3)
         img = cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0)
 
-        cv2.imshow("Select color", img)
+        cv2.imshow("foo", img)
         cv2.waitKey(1)
 
-    cv2.destroyAllWindows()
 
 
 
     img= img0
-    cv2.imwrite("/original/"+str(total_count)+".png",img0)
+    cv2.imwrite("original/"+str(total_count)+".png",img0)
 
     new  = np.zeros(img.shape, dtype=img.dtype)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -414,9 +419,9 @@ while cv2.waitKey(1)!=27:
 
     # overwrite the section of the background image that has been updated
     background[yoff:yoff+h, xoff:xoff+w] = composite
-    cv2.imwrite(str(total_count)+str(time.time())+".png",background)
+    cv2.imwrite("modified/"+str(total_count)+str(time.time())+".png",background)
 
-    cv2.imshow("f", background)
+    cv2.imshow("foo", background)
     total_count+=1
 
 cv2.waitKey()
