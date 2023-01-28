@@ -7,13 +7,20 @@ import random
 import os
 #from cvzone.FaceMeshModule import FaceMeshDetector
 import time
-src = cv2.VideoCapture(0)
+# src = cv2.VideoCapture(0)
 # detector2 = FaceMeshDetector(maxFaces=3)
 
 i=0
 #size = [4,4]
 
 # Skin mouth hair
+width = 1280
+height =    720
+src = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+src.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+src.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+# src.set(cv2.CAP_PROP_FPS, 30)
+# src.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
 
 from cvzone.HandTrackingModule import HandDetector
 import cv2
@@ -61,15 +68,12 @@ def select_box(p):
         b = circle[1]
         dist = ((x - a) ** 2 + (y - b) ** 2) ** (1 / 2)
         if dist <= radius:
-            if circle in selected:
-                selected.remove(circle)
-            else:
                 if len(selected) >= max_colors:
                     selected.remove(selected[0])
                 selected.append(circle)
 color_grps =[[[216, 103, 33],[212, 89, 102],[242,212,240]],[[255, 223, 211],[254, 200, 216],[224,187,228]],[[39, 31, 230],[200, 39, 36],[100,140,200]],[[245, 220, 200],[245, 240, 170],[200,239,247]],[[0, 255, 255],[0, 191, 255],[191,0,255]],[[236,150,250],[130,210,236],[120,105,245]]]
-cv2.namedWindow("foo", cv2.WINDOW_NORMAL)
-cv2.setWindowProperty("foo", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+# cv2.namedWindow("foo", cv2.WINDOW_NORMAL)
+# cv2.setWindowProperty("foo", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 while cv2.waitKey(1)!=27:
     R = 20
     radius = 50
@@ -110,7 +114,7 @@ while cv2.waitKey(1)!=27:
     run = True
     capture_bool = False
     capture_r = 30
-    capture_counter = 100
+    capture_counter = 36
 
     while run:
 
@@ -121,14 +125,16 @@ while cv2.waitKey(1)!=27:
         # Find the hand and its landmarks
         img0 = cv2.GaussianBlur(img0, (7, 7), 0)
         img = img0.copy()
+        WIDTH, HEIGHT = (np.size(img, 1), np.size(img, 0))
+        capture_pos = (WIDTH // 2, HEIGHT//2 - margin)
         if capture_bool:
             capture_counter-=1
-            angle1+=3.6
+            angle1+=10
             print("add")
             cv2.ellipse(img, (WIDTH//2,HEIGHT//2 ), (50,50), 0, 0,360-angle1,(255,255,255), -1)
             cv2.ellipse(img, (WIDTH//2,HEIGHT//2 ), (55,55), 0, 0,360 - angle1,(0,0,0), 5)
 
-            cv2.imshow("Select color", img)
+            cv2.imshow("foo", img)
             cv2.waitKey(1)
             if capture_counter<=0:
                 gray = cv2.cvtColor(img0, cv2.COLOR_BGR2GRAY)
@@ -145,17 +151,16 @@ while cv2.waitKey(1)!=27:
                 if len(faces) > 0:
                     face = faces[0]
                     run = False
-                    height = HEIGHT - (face[1] - face[3] // 4)
+                    height =HEIGHT - (face[1] - face[3] // 4)
                     width =int(height/1.41)
                     print(width,height)
                     face_x = face[0]+face[2]//2
-                    img0 = img0[0:height, face_x - width//2: width//2 + face_x]
-                    cv2.resize(img0,(1754*2,2480*2))
+                    img0 = img0[face[1] - face[3] // 4: , face_x - width//2: width//2 + face_x]
 
                     print(img0)
 
                 else:
-                    capture_counter=100
+                    capture_counter=36
                     run = True
                     capture_bool=False
                     print("no face detected")
@@ -165,8 +170,7 @@ while cv2.waitKey(1)!=27:
 
         hands= detector.findHands(img,draw=False)  # with draw
         # hands = detector.findHands(img, draw=False)  # without draw
-        WIDTH, HEIGHT = (np.size(img, 1), np.size(img, 0))
-        capture_pos = (WIDTH // 2, margin +capture_r)
+
 
         if hands:
             # Hand 1
@@ -422,6 +426,7 @@ while cv2.waitKey(1)!=27:
     cv2.imwrite("modified/"+str(total_count)+str(time.time())+".png",background)
 
     cv2.imshow("foo", background)
+    cv2.waitKey()
     total_count+=1
 
 cv2.waitKey()
